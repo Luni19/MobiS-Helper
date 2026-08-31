@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>MobiS · Калькулятор заработка</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --leaf-light:#8bc63f;
+    --leaf-mid:#5fa93a;
+    --leaf-dark:#2f6b36;
+    --leaf-deep:#1e4523;
+    --bg:#f4f9ee;
+    --card:#ffffff;
+    --ink:#16261a;
+    --ink-soft:#5a6b5c;
+    --line:#e0ead4;
+    --radius:18px;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    background-image:
+      radial-gradient(600px 300px at 100% -10%, rgba(139,198,63,.18), transparent 60%),
+      radial-gradient(500px 260px at -10% 110%, rgba(47,107,54,.14), transparent 60%);
+    color:var(--ink);
+    font-family:'Manrope', system-ui, sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:28px 16px 60px;
+  }
+
+  .app{
+    width:100%;
+    max-width:420px;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:22px;
+  }
+  .mark{ flex:0 0 auto; }
+  .mark svg{ display:block; width:40px; height:40px; }
+  header h1{
+    font-size:17px;
+    font-weight:800;
+    letter-spacing:.2px;
+    margin:0;
+    line-height:1.15;
+  }
+  header p{
+    margin:2px 0 0;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    font-weight:600;
+  }
+
+  /* ---------- Card ---------- */
+  .card{
+    background:var(--card);
+    border-radius:var(--radius);
+    padding:20px;
+    box-shadow:0 1px 2px rgba(30,50,25,.04), 0 10px 30px -18px rgba(30,50,25,.35);
+    border:1px solid var(--line);
+  }
+  .card + .card{ margin-top:16px; }
+
+  .label{
+    font-size:12.5px;
+    font-weight:700;
+    color:var(--ink-soft);
+    margin:0 0 10px;
+  }
+
+  /* ---------- Category chips ---------- */
+  .categories{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:8px;
+  }
+  .cat{
+    border:1.5px solid var(--line);
+    background:#fbfdf7;
+    border-radius:13px;
+    padding:12px 6px 10px;
+    text-align:center;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+    transition:border-color .15s ease, background .15s ease, transform .1s ease;
+    user-select:none;
+  }
+  .cat:active{ transform:scale(.97); }
+  .cat .icon{
+    width:26px;height:26px;margin:0 auto 6px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .cat .icon svg{ width:100%; height:100%; }
+  .cat .name{ font-size:12.5px; font-weight:700; line-height:1.2; }
+  .cat .pct{ font-size:11px; font-weight:600; color:var(--ink-soft); margin-top:1px; }
+
+  .cat[data-active="true"]{
+    border-color:var(--leaf-dark);
+    background:linear-gradient(160deg, #eef8e2, #e4f3d8);
+  }
+  .cat[data-active="true"] .pct{ color:var(--leaf-deep); }
+
+  /* ---------- Amount input ---------- */
+  .amount-row{
+    display:flex;
+    align-items:stretch;
+    gap:8px;
+  }
+  .amount-field{
+    flex:1;
+    display:flex;
+    align-items:center;
+    border:1.5px solid var(--line);
+    border-radius:13px;
+    padding:0 14px;
+    background:#fbfdf7;
+  }
+  .amount-field input{
+    border:none;
+    background:transparent;
+    outline:none;
+    font-family:inherit;
+    font-size:22px;
+    font-weight:700;
+    color:var(--ink);
+    width:100%;
+    padding:13px 0;
+  }
+  .amount-field input::placeholder{ color:#b9c6b3; font-weight:600; }
+
+  select#currency{
+    border:1.5px solid var(--line);
+    background:#fbfdf7;
+    border-radius:13px;
+    font-family:inherit;
+    font-size:15px;
+    font-weight:700;
+    color:var(--ink);
+    padding:0 10px;
+    appearance:none;
+    -webkit-appearance:none;
+    text-align:center;
+    width:58px;
+  }
+
+  /* ---------- Result ---------- */
+  .result{
+    border-radius:var(--radius);
+    padding:20px;
+    background:linear-gradient(155deg, var(--leaf-dark), var(--leaf-deep));
+    color:#f4faf0;
+    box-shadow:0 12px 28px -16px rgba(30,60,25,.55);
+    position:relative;
+    overflow:hidden;
+  }
+  .result::before{
+    content:"";
+    position:absolute;
+    right:-30px; top:-40px;
+    width:150px; height:150px;
+    background:radial-gradient(circle, rgba(139,198,63,.30), transparent 65%);
+  }
+  .result .r-label{
+    font-size:12.5px;
+    font-weight:700;
+    color:#cfe8b9;
+    margin:0 0 4px;
+    position:relative;
+  }
+  .result .r-value{
+    font-size:36px;
+    font-weight:800;
+    letter-spacing:-.5px;
+    margin:0;
+    position:relative;
+  }
+  .result .r-sub{
+    font-size:12.5px;
+    font-weight:600;
+    color:#cfe8b9;
+    margin:6px 0 0;
+    position:relative;
+  }
+
+  .add-btn{
+    width:100%;
+    margin-top:14px;
+    border:none;
+    border-radius:13px;
+    padding:13px 16px;
+    background:#fff;
+    color:var(--leaf-deep);
+    font-family:inherit;
+    font-size:14px;
+    font-weight:800;
+    cursor:pointer;
+    transition:opacity .15s ease, transform .1s ease;
+  }
+  .add-btn:active{ transform:scale(.98); }
+  .add-btn:disabled{ opacity:.5; cursor:not-allowed; }
+
+  /* ---------- History ---------- */
+  .history-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:12px;
+  }
+  .history-head .label{ margin:0; }
+  .clear-link{
+    border:none;
+    background:none;
+    font-family:inherit;
+    font-size:12px;
+    font-weight:700;
+    color:#a9483f;
+    cursor:pointer;
+    padding:0;
+  }
+  .clear-link:disabled{ color:#c7ccc5; cursor:not-allowed; }
+
+  .history-list{ display:flex; flex-direction:column; }
+  .h-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .h-row:last-child{ border-bottom:none; }
+  .h-dot{
+    width:8px;height:8px;border-radius:50%;
+    flex:0 0 auto;
+  }
+  .h-mid{ flex:1; min-width:0; }
+  .h-mid .h-cat{ font-size:13px; font-weight:700; }
+  .h-mid .h-price{ font-size:11.5px; color:var(--ink-soft); font-weight:600; }
+  .h-earn{ font-size:14.5px; font-weight:800; color:var(--leaf-deep); white-space:nowrap; }
+  .h-del{
+    flex:0 0 auto;
+    border:none;
+    background:none;
+    color:#b9c6b3;
+    font-size:16px;
+    line-height:1;
+    cursor:pointer;
+    padding:4px;
+  }
+  .h-del:hover{ color:#a9483f; }
+
+  .empty{
+    text-align:center;
+    padding:18px 4px 6px;
+    color:var(--ink-soft);
+    font-size:13px;
+    font-weight:600;
+  }
+
+  .totals{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:4px;
+    padding-top:14px;
+    border-top:1.5px solid var(--line);
+  }
+  .totals .t-label{ font-size:13px; font-weight:700; color:var(--ink-soft); }
+  .totals .t-value{ font-size:19px; font-weight:800; color:var(--leaf-deep); }
+
+  footer{
+    text-align:center;
+    margin-top:22px;
+    font-size:11.5px;
+    color:#9fae9a;
+    font-weight:600;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="mark">
+      <svg viewBox="0 0 64 64" fill="none">
+        <path d="M32 6 L48 20 L32 34 L16 20 Z" fill="#8bc63f"/>
+        <path d="M32 20 L48 34 L32 48 L16 34 Z" fill="#2f6b36"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Калькулятор заработка</h1>
+      <p>Помощник продавца-консультанта MobiS</p>
+    </div>
+  </header>
+
+  <div class="card">
+    <p class="label">Категория товара</p>
+    <div class="categories" id="categories">
+      <div class="cat" data-cat="cases" data-pct="15">
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="6" y="2.5" width="12" height="19" rx="3" stroke="#2f6b36" stroke-width="1.6"/><circle cx="12" cy="18.3" r="1" fill="#2f6b36"/><rect x="9" y="5" width="6" height="1.4" rx=".7" fill="#2f6b36"/></svg>
+        </div>
+        <div class="name">Чехлы</div>
+        <div class="pct">15%</div>
+      </div>
+      <div class="cat" data-cat="glass" data-pct="20">
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="16" height="18" rx="2.4" stroke="#2f6b36" stroke-width="1.6"/><line x1="7" y1="7" x2="17" y2="17" stroke="#2f6b36" stroke-width="1.3" stroke-linecap="round"/><line x1="7" y1="17" x2="12" y2="12" stroke="#2f6b36" stroke-width="1.3" stroke-linecap="round"/></svg>
+        </div>
+        <div class="name">Стёкла</div>
+        <div class="pct">20%</div>
+      </div>
+      <div class="cat" data-cat="tech" data-pct="8">
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="12" rx="2" stroke="#2f6b36" stroke-width="1.6"/><circle cx="12" cy="12" r="2.6" stroke="#2f6b36" stroke-width="1.4"/><line x1="12" y1="6" x2="12" y2="4" stroke="#2f6b36" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </div>
+        <div class="name">Техника</div>
+        <div class="pct">8%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="label">Сумма продажи</p>
+    <div class="amount-row">
+      <div class="amount-field">
+        <input type="number" id="amount" inputmode="decimal" placeholder="0" min="0" step="1">
+      </div>
+      <select id="currency">
+        <option value="₴">₴</option>
+        <option value="$">$</option>
+        <option value="€">€</option>
+        <option value="₽">₽</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="result">
+    <p class="r-label">Ваш заработок</p>
+    <p class="r-value" id="earning">0 ₴</p>
+    <p class="r-sub" id="resultSub">Выберите категорию и введите сумму</p>
+    <button class="add-btn" id="addBtn" disabled>Добавить в список продаж</button>
+  </div>
+
+  <div class="card">
+    <div class="history-head">
+      <p class="label">Продажи сегодня</p>
+      <button class="clear-link" id="clearBtn" disabled>Очистить</button>
+    </div>
+    <div class="history-list" id="historyList">
+      <p class="empty">Пока нет добавленных продаж</p>
+    </div>
+    <div class="totals" id="totalsRow" style="display:none;">
+      <span class="t-label">Итого заработано</span>
+      <span class="t-value" id="totalValue">0 ₴</span>
+    </div>
+  </div>
+
+  <footer>Расчёт: чехлы 15% · стёкла 20% · техника 8%</footer>
+</div>
+
+<script>
+  const CATS = {
+    cases: { name: 'Чехлы', pct: 15, color: '#8bc63f' },
+    glass: { name: 'Стёкла', pct: 20, color: '#5fa93a' },
+    tech:  { name: 'Техника', pct: 8,  color: '#2f6b36' }
+  };
+
+  let activeCat = null;
+  let sales = [];
+
+  const catsEl = document.getElementById('categories');
+  const amountEl = document.getElementById('amount');
+  const currencyEl = document.getElementById('currency');
+  const earningEl = document.getElementById('earning');
+  const resultSubEl = document.getElementById('resultSub');
+  const addBtn = document.getElementById('addBtn');
+  const historyListEl = document.getElementById('historyList');
+  const totalsRow = document.getElementById('totalsRow');
+  const totalValueEl = document.getElementById('totalValue');
+  const clearBtn = document.getElementById('clearBtn');
+
+  function fmt(n){
+    return Math.round(n).toLocaleString('ru-RU');
+  }
+
+  function currentEarning(){
+    const price = parseFloat(amountEl.value) || 0;
+    if(!activeCat || price <= 0) return 0;
+    return price * (CATS[activeCat].pct / 100);
+  }
+
+  function updateResult(){
+    const cur = currencyEl.value;
+    const price = parseFloat(amountEl.value) || 0;
+    const earning = currentEarning();
+
+    earningEl.textContent = `${fmt(earning)} ${cur}`;
+
+    if(!activeCat){
+      resultSubEl.textContent = 'Выберите категорию и введите сумму';
+    } else if(price <= 0){
+      resultSubEl.textContent = `${CATS[activeCat].name} · ${CATS[activeCat].pct}% — введите сумму продажи`;
+    } else {
+      resultSubEl.textContent = `${CATS[activeCat].name} · ${CATS[activeCat].pct}% от ${fmt(price)} ${cur}`;
+    }
+
+    addBtn.disabled = !(activeCat && price > 0);
+  }
+
+  catsEl.addEventListener('click', (e) => {
+    const chip = e.target.closest('.cat');
+    if(!chip) return;
+    activeCat = chip.dataset.cat;
+    [...catsEl.children].forEach(c => c.dataset.active = (c === chip) ? 'true' : 'false');
+    updateResult();
+  });
+
+  amountEl.addEventListener('input', updateResult);
+  currencyEl.addEventListener('change', () => {
+    updateResult();
+    renderHistory();
+  });
+
+  addBtn.addEventListener('click', () => {
+    const price = parseFloat(amountEl.value) || 0;
+    if(!activeCat || price <= 0) return;
+    sales.push({
+      cat: activeCat,
+      price,
+      earning: currentEarning(),
+      currency: currencyEl.value
+    });
+    amountEl.value = '';
+    updateResult();
+    renderHistory();
+  });
+
+  clearBtn.addEventListener('click', () => {
+    sales = [];
+    renderHistory();
+  });
+
+  function renderHistory(){
+    historyListEl.innerHTML = '';
+    if(sales.length === 0){
+      historyListEl.innerHTML = '<p class="empty">Пока нет добавленных продаж</p>';
+      totalsRow.style.display = 'none';
+      clearBtn.disabled = true;
+      return;
+    }
+    clearBtn.disabled = false;
+
+    let total = 0;
+    sales.forEach((s, i) => {
+      total += s.earning;
+      const row = document.createElement('div');
+      row.className = 'h-row';
+      row.innerHTML = `
+        <span class="h-dot" style="background:${CATS[s.cat].color}"></span>
+        <span class="h-mid">
+          <span class="h-cat">${CATS[s.cat].name}</span><br>
+          <span class="h-price">${fmt(s.price)} ${s.currency} · ${CATS[s.cat].pct}%</span>
+        </span>
+        <span class="h-earn">+${fmt(s.earning)} ${s.currency}</span>
+        <button class="h-del" data-i="${i}" aria-label="Удалить">✕</button>
+      `;
+      historyListEl.appendChild(row);
+    });
+
+    totalsRow.style.display = 'flex';
+    totalValueEl.textContent = `${fmt(total)} ${sales[sales.length-1].currency}`;
+  }
+
+  historyListEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.h-del');
+    if(!btn) return;
+    sales.splice(parseInt(btn.dataset.i, 10), 1);
+    renderHistory();
+  });
+
+  updateResult();
+</script>
+</body>
+</html>
